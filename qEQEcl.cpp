@@ -138,8 +138,8 @@ void qEQEcl::on_run_btn_clicked()
     }
     eqgame->setProcessEnvironment(env);
     eqgame->setWorkingDirectory(eqpath);
-    //eqgame->start("wine", QStringList() << "eqgame.exe" << "patchme");
-    eqgame->start("winecfg", QStringList());
+    eqgame->start("wine", QStringList() << "eqgame.exe" << "patchme");
+    //eqgame->start("winecfg", QStringList());
 }
 
 void qEQEcl::eqgame_started()
