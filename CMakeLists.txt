@@ -2,17 +2,19 @@ project(qeqecl)
 
 cmake_minimum_required(VERSION 2.8)
 
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(HEADERS
         qEQEcl.h
+        miniz.h
 )
 
 set(SOURCES
         main.cpp
         qEQEcl.cpp
+        miniz.c
 )
 
 set(FORMS
@@ -35,3 +37,10 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
         ${QT_LIBRARIES}
 )
+
+if(WIN32)
+    # This copies a manifest and a correct CRT into the installation directory
+    include(InstallRequiredSystemLibraries)
+    #http://www.cmake.org/Wiki/BundleUtilitiesExample
+    #http://mikemcquaid.com/2012/01/04/deploying-qt-applications-with-deployqt4/
+endif()
