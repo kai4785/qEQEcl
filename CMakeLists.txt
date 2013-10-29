@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
 include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(HEADERS
@@ -32,7 +33,11 @@ add_executable(${PROJECT_NAME}
         ${HEADERS_MOC}
         ${FORM_HEADERS}
         ${QRESOURCES_RCC}
+	${HEADERS}
 )
+
+set_source_files_properties(${HEADERS_MOC} ${FORM_HEADERS} ${QRESOURCES_RCC}
+	PROPERTIES GENERATED True)
 
 target_link_libraries(${PROJECT_NAME}
         ${QT_LIBRARIES}
@@ -44,3 +49,4 @@ if(WIN32)
     #http://www.cmake.org/Wiki/BundleUtilitiesExample
     #http://mikemcquaid.com/2012/01/04/deploying-qt-applications-with-deployqt4/
 endif()
+include(CPack)

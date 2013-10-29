@@ -131,7 +131,7 @@ void qEQEcl::update_table(const QString &section)
 void qEQEcl::on_ini_table_cellChanged(int row, int column)
 {
     /* TODO: Find a better check to ignore the clear() */
-    if(!ui->ini_table->verticalHeaderItem(row))
+    if(!eqclient || !ui->ini_table->verticalHeaderItem(row))
         return;
     QString section = ui->ini_section_box->currentText();
     QString key = ui->ini_table->verticalHeaderItem(row)->text();
