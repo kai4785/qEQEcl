@@ -7,10 +7,13 @@ include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-set(HEADERS
+set(QT_HEADERS
         qEQEcl.h
-        fops.h
         qtfiledownload.h
+)
+
+set(HEADERS
+        fops.h
         miniz.h
 )
 
@@ -28,16 +31,17 @@ set(FORMS
 
 set(QRESOURCES
 )
-QT4_WRAP_CPP(HEADERS_MOC ${HEADERS})
-QT4_WRAP_UI(FORM_HEADERS ${FORMS})
+qt4_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
+qt4_wrap_ui(FORM_HEADERS ${FORMS})
 qt4_add_resources(QRESOURCES_RCC ${QRESOURCES})
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
         ${SOURCES}
         ${HEADERS_MOC}
         ${FORM_HEADERS}
         ${QRESOURCES_RCC}
-	${HEADERS}
+        ${QT_HEADERS}
+        ${HEADERS}
 )
 
 set_source_files_properties(${HEADERS_MOC} ${FORM_HEADERS} ${QRESOURCES_RCC}
@@ -47,10 +51,11 @@ target_link_libraries(${PROJECT_NAME}
         ${QT_LIBRARIES}
 )
 
-if(WIN32)
-    # This copies a manifest and a correct CRT into the installation directory
-    include(InstallRequiredSystemLibraries)
-    #http://www.cmake.org/Wiki/BundleUtilitiesExample
-    #http://mikemcquaid.com/2012/01/04/deploying-qt-applications-with-deployqt4/
-endif()
+include(qeqecl_install.cmake)
+
+set(CPACK_BINARY_DRAGNDROP ON)
+set(CPACK_PACKAGE_VERSION_MAJOR 0)
+set(CPACK_PACKAGE_VERSION_MINOR 0)
+set(CPACK_PACKAGE_VERSION_PATCH 1)
+set(CPACK_PACKAGE_CONTACT "Kai Meyer <kai@gnukai.com>")
 include(CPack)

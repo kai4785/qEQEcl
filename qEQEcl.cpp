@@ -95,6 +95,8 @@ QStringList qEQEcl::wine_eq_dir(const QString &path)
         qDebug() << "Right" << path.mid(drive_index + 7);
         retval << path.mid(drive_index + 6, 1).toUpper() + ":" + path.mid(drive_index + 7).replace('/', '\\');
         qDebug() << "Drive Letter" << path.mid(drive_index + 6, 1).toUpper();
+    } else {
+        retval << path << path;
     }
     qDebug() << retval;
     return retval;
