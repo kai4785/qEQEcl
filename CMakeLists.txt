@@ -9,12 +9,16 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(HEADERS
         qEQEcl.h
+        fops.h
+        qtfiledownload.h
         miniz.h
 )
 
 set(SOURCES
         main.cpp
         qEQEcl.cpp
+        fops.cpp
+        qtfiledownload.cpp
         miniz.c
 )
 

@@ -7,6 +7,7 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
+#include "qtfiledownload.h"
 
 namespace Ui {
 class qEQEcl;
@@ -26,10 +27,16 @@ private:
     QSettings *conf;
     QSettings *eqclient;
     QProcess *eqgame;
-    QNetworkAccessManager *manager;
+    QtDownload *dl;
     void find_eqpath();
     void update_eqpath();
     void update_table(const QString &section);
+    bool set_eqpath(const QString &path);
+    void unpack_p99_files(const QString &p99zip_path);
+#ifdef unix
+    QStringList wine_eq_dir(const QString &path);
+#endif
+    void parse_ini();
 private slots:
     void on_eqpath_browse_btn_clicked();
     void on_ini_import_btn_clicked();
@@ -42,6 +49,9 @@ private slots:
     void on_cpu_num_activated(const QString &arg1);
     void on_pin_cpu_check_clicked(bool checked);
     void on_p99_check_clicked(bool checked);
+    void p99_download_done();
+    void on_ini_reload_btn_clicked();
+
 public slots:
     void eqgame_started();
     void eqgame_finished(int exitCode, QProcess::ExitStatus exitStatus);
