@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QString>
+#include <QFile>
 #include <QSettings>
 #include <QMessageBox>
 #include <QLineEdit>
@@ -32,9 +33,6 @@ qEQEcl::qEQEcl(QWidget *parent) :
         QStringList groups = eqclient->childGroups();
         ui->ini_section_box->addItems(groups);
         update_table(groups[0]);
-    } else if(eqpath.entryList().contains("eqclient.ini", Qt::CaseInsensitive)) {
-        qDebug() << "eqclient.ini exists, but isn't all lowercase, and I don't want to deal with your problems right now.";
-        qDebug() << eqpath.entryList().filter("eqclient.ini", Qt::CaseInsensitive);
     }
     eqgame = new QProcess();
     qDebug() << "ideal Thread Count" << QThread::idealThreadCount();
@@ -92,6 +90,40 @@ void qEQEcl::update_eqpath()
     conf->setValue("eqpath", this->ui->eqpath_text->toPlainText());
 }
 
+bool is_dir_case_sensitive(const QString &path)
+{
+    QDir dir(path);
+    if(!dir.exists())
+        return false;
+    QFile upper(dir.absoluteFilePath("TESTFILENAMECASE.TXT"));
+    upper.open(QIODevice::WriteOnly);
+    upper.close();
+    QFile lower(dir.absoluteFilePath("testfilenamecase.txt"));
+    bool retval = !lower.exists();
+    upper.remove();
+    qDebug() << "is_dir_case_sensitive" << path << retval;
+    return retval;
+}
+
+void lower_case_everything(const QString &path)
+{
+    qDebug() << "lower_case_everything" << path;
+    QDir dir(path);
+    QStringList files = dir.entryList(QDir::Files);
+    QString sub_path, file;
+    foreach(file, files) {
+        qDebug() << "mv" << file << file.toLower();
+        dir.rename(file, file.toLower());
+    }
+    QStringList dirs = dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
+    foreach(sub_path, dirs) {
+        qDebug() << "mv" << sub_path << sub_path.toLower();
+        dir.rename(sub_path, sub_path.toLower());
+        qDebug() << "abs" << dir.absoluteFilePath(sub_path.toLower());
+        lower_case_everything(dir.absoluteFilePath(sub_path.toLower()));
+    }
+}
+
 void qEQEcl::on_eqpath_browse_btn_clicked()
 {
     QFileDialog dialog(this);
@@ -100,6 +132,23 @@ void qEQEcl::on_eqpath_browse_btn_clicked()
     conf->setValue("eqpath", new_eqpath);
     qDebug() << "getExistingDirectory " << new_eqpath;
     this->ui->eqpath_text->setPlainText(new_eqpath);
+    QDir eqpath(new_eqpath);
+    if(!eqpath.entryList().contains("eqgame.exe", Qt::CaseInsensitive)) {
+        QMessageBox::information(this, "eqgame.exe missing",
+                                 "There is no eqgame.exe file in this directory.\n"
+                                 "TODO: Don't be so mean about this.\n"
+                                 "Maybe turn the text box color red, and be happy with that.");
+    }
+    else if(is_dir_case_sensitive(new_eqpath)) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Case Sensitive Directory",
+                                      "This filesystem is Case Sensitive. It's in your best interest to lowercase everything.\n"
+                                      "Click Yes to lowercase everything recursively in the directory " + new_eqpath + "\n"
+                                      "Click No if you've already done it, or you just don't wanna.",
+                                      QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+            lower_case_everything(new_eqpath);
+    }
 }
 
 void qEQEcl::on_ini_import_btn_clicked()
@@ -221,90 +270,71 @@ void qEQEcl::on_add_ini_values_btn_clicked()
     QMessageBox::information(this, "Implement adding values here", "TODO: Present fields for section(default current selected section), key, and value.");
 }
 
-QString case_insensitive_file(const QDir &dir, const QString file) {
-    QStringList list = dir.entryList(QStringList() << file, QDir::AllEntries);
-    if(list.length())
-        return list[0];
-    else
-        return "";
-}
-
 void qEQEcl::on_p99_check_clicked(bool checked)
 {
-#if 0
     qDebug() << "on_p99_check_clicked" << checked;
-    if(checked) {
-        connect(manager, SIGNAL(finished(QNetworkReply*)),
-                this, SLOT(replyFinished(QNetworkReply*)));
-        manager->get(QNetworkRequest(QUrl("http://kai.gnukai.com/ip.php")));
-    }
-#endif
     QString eqpath(conf->value("eqpath", "").toString());
     if(eqpath == "")
         return;
-
     QDir eqdir(eqpath);
-    qDebug() << "EQCLIENT.INI ALLEntries" << eqdir.entryList(QStringList() << "EQCLIENT.INI", QDir::AllEntries);
-    /* Case insensitive? */
-    QFileInfo p99zip(eqdir.filePath("P99Files30.zip"));
-    if(p99zip.exists()) {
-        qDebug() << "Found p99 zip archive!";
-        mz_zip_archive zip_archive;
-        memset(&zip_archive, 0, sizeof(zip_archive));
-        QByteArray q_zip_archive_name = p99zip.absoluteFilePath().toUtf8();
-        qDebug() << "q_zip_archive_name" << q_zip_archive_name;
-        const char *c_zip_archive_name = q_zip_archive_name.constData();
-        qDebug() << "c_zip_archive_name" << c_zip_archive_name;
-        mz_bool status = mz_zip_reader_init_file(&zip_archive, c_zip_archive_name, 0);
-        QMap<QString, QDir> dirmap;
-        if(!status) {
-            qDebug() << "Failed to open zip archive" << c_zip_archive_name;
-            return;
+    if(!eqdir.entryList().contains("eqgame.exe")) {
+        return;
+    }
+    if(!checked) {
+        QMessageBox::information(this, "Implement un-doing P99 files", "TODO: We should be able to revert P99 changes.");
+    } else {
+        QMessageBox::information(this, "Implement downloading zip file", "TODO: Download the P99Files<num>.zip file. For now, manually download it and put it next to eqgame.exe");
+#if 0
+        if(checked) {
+            connect(manager, SIGNAL(finished(QNetworkReply*)),
+                    this, SLOT(replyFinished(QNetworkReply*)));
+            manager->get(QNetworkRequest(QUrl("http://kai.gnukai.com/ip.php")));
         }
-        for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++) {
-            mz_zip_archive_file_stat file_stat;
-            if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
-            {
-                qDebug() << "mz_zip_reader_file_stat() failed!";
-                mz_zip_reader_end(&zip_archive);
+#endif
+        QStringList p99list = eqdir.entryList(QStringList() << "p99files30.zip", QDir::AllEntries);
+        QFileInfo p99zip;
+        if(p99list.length()) {
+            eqdir.rename(p99list.at(0), p99list.at(0).toLower());
+            p99list.at(0).toLower();
+            p99zip.setFile(eqdir.filePath(p99list.at(0).toLower()));
+        }
+        if(p99zip.exists()) {
+            qDebug() << "Found p99 zip archive!";
+            mz_zip_archive zip_archive;
+            memset(&zip_archive, 0, sizeof(zip_archive));
+            QByteArray q_zip_archive_name = p99zip.absoluteFilePath().toUtf8();
+            qDebug() << "q_zip_archive_name" << q_zip_archive_name;
+            const char *c_zip_archive_name = q_zip_archive_name.constData();
+            qDebug() << "c_zip_archive_name" << c_zip_archive_name;
+            mz_bool status = mz_zip_reader_init_file(&zip_archive, c_zip_archive_name, 0);
+            QMap<QString, QString> unzipped;
+            if(!status) {
+                qDebug() << "Failed to open zip archive" << c_zip_archive_name;
                 return;
             }
-            QString fname = QString::fromUtf8(file_stat.m_filename);
-            QStringList fname_path = fname.split(QDir::separator(), QString::SkipEmptyParts);
-            qDebug() << fname_path;
-            QDir fname_dir = eqdir;
-            mz_bool isdir = (mz_zip_reader_is_file_a_directory(&zip_archive, i));
-            for(int j = 0; j < fname_path.length() - (int)(!isdir); ++j) {
-                QString child = case_insensitive_file(fname_dir, fname_path[j]);
-                if(child.length() == 0) {
-                    //qDebug() << "New dir:" << fname_path.join(QDir::separator());
-                    child = fname_dir.absoluteFilePath(fname_path[j]);
-                } else {
-                    //qDebug() << "Existing dir:" << fname_path.join(QDir::separator());
-                    child = fname_dir.absoluteFilePath(child);
+            for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++) {
+                mz_zip_archive_file_stat file_stat;
+                if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+                {
+                    qDebug() << "mz_zip_reader_file_stat() failed!";
+                    mz_zip_reader_end(&zip_archive);
+                    return;
                 }
-                fname_dir = dirmap.value(child, QDir(child));
-                //qDebug() << "Next dir:" << fname_dir.absolutePath();
-            }
-            if(!isdir) {
-                QString old_filename = case_insensitive_file(fname_dir, fname_path.last());
-                if(old_filename == "") {
-                    old_filename = fname_dir.filePath(fname_path.last());
-                } else {
-                    old_filename = fname_dir.filePath(old_filename);
+                QString fname = QString::fromUtf8(file_stat.m_filename);
+                mz_bool isdir = (mz_zip_reader_is_file_a_directory(&zip_archive, i));
+                if(!isdir) {
+                    qDebug() << "Extracting:" << fname << " -> " << fname.toLower();
+                    // TODO: Do the extraction.
+                    //mz_bool mz_zip_reader_extract_to_file(mz_zip_archive *pZip, mz_uint file_index, const char *pDst_filename, mz_uint flags);
                 }
-                old_filename = eqdir.relativeFilePath(old_filename);
-                qDebug() << "Extracting:" << fname << " -> " << old_filename;
-                // TODO: Do the extraction.
-                //mz_bool mz_zip_reader_extract_to_file(mz_zip_archive *pZip, mz_uint file_index, const char *pDst_filename, mz_uint flags);
+                //qDebug() << "Filename:" << file_stat.m_filename;
+                //qDebug() << "Comment:" << file_stat.m_comment;
+                //qDebug() << "Uncompressed size:" << file_stat.m_uncomp_size;
+                //qDebug() << "Compressed size:" << file_stat.m_comp_size;
+                //qDebug() << "Is Dir:" << mz_zip_reader_is_file_a_directory(&zip_archive, i);
             }
-            //qDebug() << "Filename:" << file_stat.m_filename;
-            //qDebug() << "Comment:" << file_stat.m_comment;
-            //qDebug() << "Uncompressed size:" << file_stat.m_uncomp_size;
-            //qDebug() << "Compressed size:" << file_stat.m_comp_size;
-            //qDebug() << "Is Dir:" << mz_zip_reader_is_file_a_directory(&zip_archive, i);
+            mz_zip_reader_end(&zip_archive);
         }
-        mz_zip_reader_end(&zip_archive);
     }
 }
 
