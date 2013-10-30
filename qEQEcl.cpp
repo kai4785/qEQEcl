@@ -103,7 +103,7 @@ QStringList qEQEcl::wine_eq_dir(const QString &path)
 }
 #endif
 
-bool qEQEcl::set_eqpath(const QString &path)
+void qEQEcl::set_eqpath(const QString &path)
 {
     QDir eqdir(path);
     QString win_eqpath;
@@ -124,11 +124,9 @@ bool qEQEcl::set_eqpath(const QString &path)
                                  "There is no eqgame.exe file in this directory.\n"
                                  "TODO: Don't be so mean about this.\n"
                                  "Maybe turn the text box color red, and be happy with that.");
-        return false;
+        return;
     }
-    QByteArray upath = path.toUtf8();
-    const char *cpath = upath.constData();
-    chdir(cpath);
+    QDir::setCurrent(path);
     bool need_lower = !conf->value("eqpath_is_lower", false).toBool();
     qDebug() << "need_lower from conf" << need_lower;
     if(need_lower) {

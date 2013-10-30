@@ -31,7 +31,7 @@ private:
     void find_eqpath();
     void update_eqpath();
     void update_table(const QString &section);
-    bool set_eqpath(const QString &path);
+    void set_eqpath(const QString &path);
     void unpack_p99_files(const QString &p99zip_path);
 #ifdef unix
     QStringList wine_eq_dir(const QString &path);

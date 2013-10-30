@@ -42,7 +42,7 @@ int backup_file(const QString &fname, const QString &path)
 {
     QFileInfo finfo(fname);
     QDir dir(path);
-    bool retval = -1;
+    int retval = -1;
     //QDir::cleanPath(path1 + QDir::separator() + path2);
     if(finfo.exists()) {
         qDebug() << fname << "file already exists";
