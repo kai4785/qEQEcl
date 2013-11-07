@@ -57,6 +57,7 @@ target_link_libraries(${PROJECT_NAME}
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
 set(CPACK_PACKAGE_VERSION_MINOR 0)
 set(CPACK_PACKAGE_VERSION_PATCH 1)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS On)
 set(CPACK_PACKAGE_CONTACT "Kai Meyer <kai@gnukai.com>")
 
 include(qeqecl_install.cmake)
