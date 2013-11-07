@@ -1,6 +1,6 @@
-project(qeqecl)
-
 cmake_minimum_required(VERSION 2.8)
+
+project(qeqecl)
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
 if(WIN32)
@@ -54,11 +54,11 @@ target_link_libraries(${PROJECT_NAME}
         ${QT_LIBRARIES}
 )
 
-include(qeqecl_install.cmake)
-
-set(CPACK_BINARY_DRAGNDROP ON)
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
 set(CPACK_PACKAGE_VERSION_MINOR 0)
-set(CPACK_PACKAGE_VERSION_PATCH 1)
+set(CPACK_PACKAGE_VERSION_PATCH 3)
 set(CPACK_PACKAGE_CONTACT "Kai Meyer <kai@gnukai.com>")
+
+include(qeqecl_install.cmake)
+
 include(CPack)

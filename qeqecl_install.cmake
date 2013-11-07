@@ -2,7 +2,7 @@
 #http://mikemcquaid.com/2012/01/04/deploying-qt-applications-with-deployqt4/
 set(plugin_dest_dir share/qt4)
 set(qtconf_dest_dir /etc)
-set(APPS "\$ENV{DESTDIR}/\${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}")
+set(APPS "$ENV{DESTDIR}/\${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}")
 if(APPLE)
 	set(plugin_dest_dir ${PROJECT_NAME}.app/Contents/MacOS)
 	set(qtconf_dest_dir ${PROJECT_NAME}.app/Contents/Resources)
@@ -38,5 +38,12 @@ endif()
 
 if(WIN32)
 	# This copies a manifest and a correct CRT into the installation directory
+	# VS 2008 SP1 has a bug in the Maifest which requires manual patching
+	# http://www.kitware.com/blog/home/post/4
 	include(InstallRequiredSystemLibraries)
+	# set(CPACK_WIX_PACKAGE_NAME ${PROJECT_NAME})
+	# set(CPACK_WIX_DISPLAY_NAME ${PROJECT_NAME})
+	# set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY ${PROJECT_NAME})
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY ${PROJECT_NAME})
+	set(CPACK_WIX_UPGRADE_GUID "7048B259-981C-49E7-A291-B89B67C7A20B")
 endif()
