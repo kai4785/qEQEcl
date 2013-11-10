@@ -18,13 +18,56 @@ qEQEcl::qEQEcl(QWidget *parent) :
     ui(new Ui::qEQEcl)
 {
     ui->setupUi(this);
-    conf = new QSettings("qEQEcl", "Kai");
-    find_eqpath();
+    conf = new QSettings("qEQEcl", "Settings");
+    current_profile = conf->value("default_profile", "").toString();
+    profile_list = conf->value("profiles", QStringList()).toStringList();
+    qDebug() << "Profile list:" << profile_list << "length:" << profile_list.length();
+    if(current_profile == "") {
+        current_profile = "default";
+        conf->setValue("default_profile", "default");
+    }
+    if(profile_list.length() == 0)
+    {
+        profile_list << current_profile;
+        profile_list << "other_profile";
+        conf->setValue("profiles", profile_list);
+    }
+    ui->menuProfile->addAction("Add", this, SLOT(add_new_profile()));
+    ui->menuProfile->addSeparator();
+    foreach(QString p, profile_list) {
+        ui->menuProfile->addAction(p, this, SLOT(switch_profile()));
+    }
+    init();
+    this->connect(eqgame, SIGNAL(started()), this, SLOT(eqgame_started()));
+    this->connect(eqgame, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(eqgame_finished(int, QProcess::ExitStatus)));
+}
+
+void qEQEcl::add_new_profile()
+{
+    QObject *sender = QObject::sender();
+    qDebug() << "add_new_profile" << sender->objectName();
+}
+
+void qEQEcl::switch_profile()
+{
+    QObject *sender = QObject::sender();
+    qDebug() << "switch_profile()" << sender->objectName();
+}
+
+void qEQEcl::init()
+{
     eqclient = 0;
+    conf->beginGroup(current_profile);
     QString eqpath = conf->value("eqpath", "").toString();
     if(eqpath != "") {
         set_eqpath(eqpath);
+    } else {
+        int prompt_val = 0;
+        do {
+            prompt_val = prompt_eqpath();
+        } while(prompt_val = 0);
     }
+    qDebug() << "Constructor eqpath:" << eqpath;
     eqgame = new QProcess();
     qDebug() << "ideal Thread Count" << QThread::idealThreadCount();
     ui->cpu_num->clear();
@@ -47,18 +90,15 @@ qEQEcl::qEQEcl(QWidget *parent) :
     if(backup_dir == "") {
         conf->setValue("p99_backup_dir", "p99_backup");
     }
-    this->connect(eqgame, SIGNAL(started()), this, SLOT(eqgame_started()));
-    this->connect(eqgame, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(eqgame_finished(int, QProcess::ExitStatus)));
 }
 
 qEQEcl::~qEQEcl()
 {
-    update_eqpath();
     delete eqgame;
     delete ui;
 }
 
-void qEQEcl::find_eqpath()
+QString qEQEcl::find_eqpath()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     QString eqpath = conf->value("eqpath", "").toString();
@@ -69,13 +109,9 @@ void qEQEcl::find_eqpath()
         qDebug() << "WINEPREFIX" << eqpath;
     }
     if(eqpath == "") {
-        eqpath = wineprefix;
+        /* TODO: Do a search for eqgame.exe in windows path C:\Program Files*\Sony\EverQuest\ */
     }
-    if(eqpath == "") {
-        eqpath = QDir::currentPath();
-        qDebug() << "QDir::currentPath()" << eqpath;
-    }
-    conf->setValue("eqpath", eqpath);
+    return eqpath;
 }
 
 #ifdef unix
@@ -87,9 +123,9 @@ QStringList qEQEcl::wine_eq_dir(const QString &path)
     QStringList retval;
     QString folder;
     qDebug() << "wine_eq_dir" << path;
-    int drive_index = path.indexOf("drive_c");
+    int drive_index = path.indexOf("drive_");
     if(drive_index >= 0) {
-        qDebug() << "drive_c is in the path" << drive_index;
+        qDebug() << "drive_ is in the path" << drive_index;
         qDebug() << "Left" << path.left(drive_index);
         retval << path.left(drive_index - 1);
         qDebug() << "Right" << path.mid(drive_index + 7);
@@ -103,7 +139,7 @@ QStringList qEQEcl::wine_eq_dir(const QString &path)
 }
 #endif
 
-void qEQEcl::set_eqpath(const QString &path)
+bool qEQEcl::set_eqpath(const QString &path)
 {
     QDir eqdir(path);
     QString win_eqpath;
@@ -124,7 +160,7 @@ void qEQEcl::set_eqpath(const QString &path)
                                  "There is no eqgame.exe file in this directory.\n"
                                  "TODO: Don't be so mean about this.\n"
                                  "Maybe turn the text box color red, and be happy with that.");
-        return;
+        return false;
     }
     QDir::setCurrent(path);
     bool need_lower = !conf->value("eqpath_is_lower", false).toBool();
@@ -149,6 +185,7 @@ void qEQEcl::set_eqpath(const QString &path)
     conf->setValue("eqpath_is_lower", !need_lower);
     qDebug() << "eqpath_is_lower" << conf->value("eqpath_is_lower").toBool();
     parse_ini();
+    return true;
 }
 
 void qEQEcl::parse_ini()
@@ -188,27 +225,41 @@ void qEQEcl::parse_ini()
     }
 }
 
-void qEQEcl::update_eqpath()
-{
-    conf->setValue("eqpath", this->ui->eqpath_text->toPlainText());
-}
-
 void qEQEcl::on_eqpath_browse_btn_clicked()
 {
-    QFileDialog dialog(this);
-    dialog.setFileMode(QFileDialog::Directory);
-    QString new_eqpath = dialog.getExistingDirectory(this, "Everquest Directory", this->ui->eqpath_text->toPlainText(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    qDebug() << "getExistingDirectory " << new_eqpath;
-    this->ui->eqpath_text->setPlainText(new_eqpath);
-    set_eqpath(new_eqpath);
+    int prompt_val = 0;
+    do {
+        prompt_val = prompt_eqpath();
+    } while(prompt_val == 0);
 }
 
-void qEQEcl::on_ini_import_btn_clicked()
+/* Return value should be:
+ * -1 for cancel
+ * 0 for retry
+ * 1 for success
+ */
+int qEQEcl::prompt_eqpath()
 {
-    QFileDialog dialog(this);
-    dialog.setFileMode(QFileDialog::AnyFile);
-    QString eqpath = dialog.getOpenFileName(this, "eqclient", conf->value("eqpath", "").toString(), "eqclient.ini");
-    qDebug() << "getOpenFileName " << eqpath;
+    int retval = 0;
+    QFileDialog dialog(this, "EverQuest Directory (with eqgame.exe)");
+    QString eqpath = conf->value("eqpath", "").toString();
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setFilter(QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot);
+    dialog.setDirectory(eqpath);
+    if(dialog.exec()) {
+        QStringList selected_files = dialog.selectedFiles();
+        qDebug() << "Selected Files:" << selected_files;
+        QString new_eqpath = selected_files[0];
+        qDebug() << "getExistingDirectory " << new_eqpath;
+        if(set_eqpath(new_eqpath))
+            retval = 1;
+        else
+            retval = 0;
+    } else {
+        qDebug() << "Cancel button pressed";
+        retval = -1;
+    }
+    return retval;
 }
 
 void qEQEcl::update_table(const QString &section)
@@ -321,6 +372,7 @@ void qEQEcl::on_actionAbout_triggered()
 void qEQEcl::on_eqpath_detect_btn_clicked()
 {
     QMessageBox::information(this, "Implement Detection here", "TODO: Detection not implemented yet");
+    //eqpath = find_eqpath();
 }
 
 void qEQEcl::on_add_ini_values_btn_clicked()
@@ -406,9 +458,6 @@ void qEQEcl::on_p99_check_clicked(bool checked)
     if(eqpath == "")
         return;
     QDir eqdir(eqpath);
-    if(!eqdir.entryList().contains("eqgame.exe")) {
-        return;
-    }
     if(!checked) {
         QMessageBox::information(this, "Implement un-doing P99 files", "TODO: We should be able to revert P99 changes.");
         QStringList backedup = conf->value("p99_backedup_files", QStringList()).toStringList();

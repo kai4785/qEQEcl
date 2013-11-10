@@ -28,18 +28,20 @@ private:
     QSettings *eqclient;
     QProcess *eqgame;
     QtDownload *dl;
-    void find_eqpath();
-    void update_eqpath();
+    QString current_profile;
+    QStringList profile_list;
+    QString find_eqpath();
     void update_table(const QString &section);
-    void set_eqpath(const QString &path);
+    bool set_eqpath(const QString &path);
     void unpack_p99_files(const QString &p99zip_path);
+    int prompt_eqpath();
+    void init();
 #ifdef unix
     QStringList wine_eq_dir(const QString &path);
 #endif
     void parse_ini();
 private slots:
     void on_eqpath_browse_btn_clicked();
-    void on_ini_import_btn_clicked();
     void on_actionAbout_triggered();
     void on_eqpath_detect_btn_clicked();
     void on_add_ini_values_btn_clicked();
@@ -51,7 +53,8 @@ private slots:
     void on_p99_check_clicked(bool checked);
     void p99_download_done();
     void on_ini_reload_btn_clicked();
-
+    void switch_profile();
+    void add_new_profile();
 public slots:
     void eqgame_started();
     void eqgame_finished(int exitCode, QProcess::ExitStatus exitStatus);
