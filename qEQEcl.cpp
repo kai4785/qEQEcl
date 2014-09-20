@@ -78,7 +78,7 @@ void qEQEcl::find_eqpath()
     conf->setValue("eqpath", eqpath);
 }
 
-#ifdef unix
+#ifdef PLAT_LINUX
 QStringList qEQEcl::wine_eq_dir(const QString &path)
 {
     // Breakup path, and search for drive_[a-z]
@@ -107,7 +107,7 @@ void qEQEcl::set_eqpath(const QString &path)
 {
     QDir eqdir(path);
     QString win_eqpath;
-#ifdef unix
+#ifdef PLAT_LINUX
     QStringList eqpaths = wine_eq_dir(path);
     win_eqpath = eqpaths[1];
     conf->setValue("wineprefix", eqpaths[0]);
@@ -286,12 +286,12 @@ void qEQEcl::on_run_btn_clicked()
     QStringList args;
     int pin_cpu = conf->value("pin_cpu", -1).toInt();
     qDebug() << "pin_cpu" << pin_cpu;
-#if defined linux
+#if defined PLAT_LINUX
     if(pin_cpu >= 0) {
         args << "taskset" << "-c" << QString::number(pin_cpu);
     }
     args << "wine";
-#elif defined _WIN32
+#elif defined PLAT_WIN32
     if(pin_cpu >= 0) {
         QMessageBox::information(this, "CPU Affinity", "TODO: Implement CPU affinity for windows");
     }

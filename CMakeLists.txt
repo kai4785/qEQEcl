@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 
 project(qeqecl)
-set(CMAKE_INCLUDE_CURRENT_DIR On)
-set(CMAKE_AUTOMOC On)
-set(CMAKE_AUTOUIC On)
-set(CMAKE_AUTORCC On)
+
+include(qeqecl_vars.cmake)
 
 find_package(Qt4 REQUIRED)
 
@@ -35,19 +33,24 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
         ${HEADERS}
 )
 
-
 target_link_libraries(${PROJECT_NAME}
         Qt4::QtCore
         Qt4::QtGui
         Qt4::QtNetwork
 )
 
-set(CPACK_PACKAGE_VERSION_MAJOR 0)
-set(CPACK_PACKAGE_VERSION_MINOR 0)
-set(CPACK_PACKAGE_VERSION_PATCH 1)
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS On)
-set(CPACK_PACKAGE_CONTACT "Kai Meyer <kai@gnukai.com>")
-
-include(qeqecl_install.cmake)
+install(TARGETS ${PROJECT_NAME}
+    DESTINATION ${PLAT_BINDIR}
+    )
 
 include(CPack)
+
+if(PLAT_WIN32)
+	# This copies a manifest and a correct CRT into the installation directory
+	# VS 2008 SP1 has a bug in the Manifest which requires manual patching
+	# http://www.kitware.com/blog/home/post/4
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${PLAT_BINDIR})
+    include(InstallRequiredSystemLibraries)
+    include(DeployQt4)
+    install_qt4_executable(${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX})
+endif()
