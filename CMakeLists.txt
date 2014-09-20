@@ -1,23 +1,18 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0.2)
 
 project(qeqecl)
+set(CMAKE_INCLUDE_CURRENT_DIR On)
+set(CMAKE_AUTOMOC On)
+set(CMAKE_AUTOUIC On)
+set(CMAKE_AUTORCC On)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
-if(WIN32)
-	set(QT_USE_QTMAIN TRUE)
-endif()
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-set(QT_HEADERS
-        qEQEcl.h
-        qtfiledownload.h
-)
+find_package(Qt4 REQUIRED)
 
 set(HEADERS
         fops.h
         miniz.h
+        qEQEcl.h
+        qtfiledownload.h
 )
 
 set(SOURCES
@@ -34,24 +29,17 @@ set(FORMS
 
 set(QRESOURCES
 )
-qt4_wrap_cpp(HEADERS_MOC ${QT_HEADERS})
-qt4_wrap_ui(FORM_HEADERS ${FORMS})
-qt4_add_resources(QRESOURCES_RCC ${QRESOURCES})
 
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
         ${SOURCES}
-        ${HEADERS_MOC}
-        ${FORM_HEADERS}
-        ${QRESOURCES_RCC}
-        ${QT_HEADERS}
         ${HEADERS}
 )
 
-set_source_files_properties(${HEADERS_MOC} ${FORM_HEADERS} ${QRESOURCES_RCC}
-	PROPERTIES GENERATED True)
 
 target_link_libraries(${PROJECT_NAME}
-        ${QT_LIBRARIES}
+        Qt4::QtCore
+        Qt4::QtGui
+        Qt4::QtNetwork
 )
 
 set(CPACK_PACKAGE_VERSION_MAJOR 0)
