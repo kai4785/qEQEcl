@@ -7,36 +7,36 @@ include(qeqecl_vars.cmake)
 find_package(Qt4 REQUIRED)
 
 set(HEADERS
-        fops.h
-        miniz.h
-        qEQEcl.h
-        qtfiledownload.h
+    fops.h
+    miniz.h
+    qEQEcl.h
+    qtfiledownload.h
 )
 
 set(SOURCES
-        main.cpp
-        qEQEcl.cpp
-        fops.cpp
-        qtfiledownload.cpp
-        miniz.c
+    main.cpp
+    qEQEcl.cpp
+    fops.cpp
+    qtfiledownload.cpp
+    miniz.c
 )
 
 set(FORMS
-        qEQEcl.ui
+    qEQEcl.ui
 )
 
 set(QRESOURCES
 )
 
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
-        ${SOURCES}
-        ${HEADERS}
+    ${SOURCES}
+    ${HEADERS}
 )
 
 target_link_libraries(${PROJECT_NAME}
-        Qt4::QtCore
-        Qt4::QtGui
-        Qt4::QtNetwork
+    Qt4::QtCore
+    Qt4::QtGui
+    Qt4::QtNetwork
 )
 
 install(TARGETS ${PROJECT_NAME}
@@ -46,9 +46,9 @@ install(TARGETS ${PROJECT_NAME}
 include(CPack)
 
 if(PLAT_WIN32)
-	# This copies a manifest and a correct CRT into the installation directory
-	# VS 2008 SP1 has a bug in the Manifest which requires manual patching
-	# http://www.kitware.com/blog/home/post/4
+    # This copies a manifest and a correct CRT into the installation directory
+    # VS 2008 SP1 has a bug in the Manifest which requires manual patching
+    # http://www.kitware.com/blog/home/post/4
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ${PLAT_BINDIR})
     include(InstallRequiredSystemLibraries)
     include(DeployQt4)
