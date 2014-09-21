@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 
-project(qeqecl)
+project(qeqecl VERSION 0.1.2)
 
 include(qeqecl_vars.cmake)
 
@@ -37,6 +37,15 @@ target_link_libraries(${PROJECT_NAME}
     Qt4::QtCore
     Qt4::QtGui
     Qt4::QtNetwork
+)
+
+add_executable(eqgame WIN32 MACOSX_BUNDLE
+    eqgame_debug.cpp
+)
+
+target_link_libraries(eqgame
+    Qt4::QtCore
+    Qt4::QtGui
 )
 
 install(TARGETS ${PROJECT_NAME}

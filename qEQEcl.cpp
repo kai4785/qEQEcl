@@ -345,6 +345,13 @@ void qEQEcl::unpack_p99_files(const QString &p99zip_path) {
             qDebug() << "Failed to open zip archive" << c_zip_archive_name;
             return;
         }
+        // TODO: http://www.project1999.com/forums/showthread.php?t=2651
+        //   We also need to "backup" the files:
+        //      arena.eqg
+        //      arena_EnvironmentEmitters.txt
+        //      lavastorm.eqg
+        //      nektulos.eqg
+        //      Nektulos_EnvironmentEmitters.txt
         for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++) {
             mz_zip_archive_file_stat file_stat;
             if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
@@ -434,7 +441,7 @@ void qEQEcl::on_p99_check_clicked(bool checked)
             }
             dl = new QtDownload;
             dl->file = "p99.zip";
-            dl->url = "http://www.project1999.org/files/P99Files30.zip";
+            dl->url = "http://www.project1999.com/files/P99Files33.zip";
             dl->download();
             QObject::connect(dl, SIGNAL(done()), this, SLOT(p99_download_done()));
             QMessageBox::information(this, "Download running", "TODO: Progress Bar!\nDownload progress is just printing with qDebug()");
