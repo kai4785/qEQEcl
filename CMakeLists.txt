@@ -9,16 +9,18 @@ find_package(Qt4 REQUIRED)
 set(HEADERS
     fops.h
     miniz.h
+    pidops.h
     qEQEcl.h
     qtfiledownload.h
 )
 
 set(SOURCES
-    main.cpp
-    qEQEcl.cpp
     fops.cpp
-    qtfiledownload.cpp
+    main.cpp
     miniz.c
+    pidops.cpp
+    qEQEcl.cpp
+    qtfiledownload.cpp
 )
 
 set(FORMS

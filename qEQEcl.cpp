@@ -1,6 +1,7 @@
 #include "qEQEcl.h"
 #include "ui_qEQEcl.h"
 #include "fops.h"
+#include "pidops.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -286,19 +287,19 @@ void qEQEcl::on_run_btn_clicked()
     QStringList args;
     int pin_cpu = conf->value("pin_cpu", -1).toInt();
     qDebug() << "pin_cpu" << pin_cpu;
+    // NOTE: Prototyped in linux with taskset.
+    // TODO: Later, implement set_affinity for Linux
 #if defined PLAT_LINUX
     if(pin_cpu >= 0) {
         args << "taskset" << "-c" << QString::number(pin_cpu);
     }
     args << "wine";
-#elif defined PLAT_WIN32
-    if(pin_cpu >= 0) {
-        QMessageBox::information(this, "CPU Affinity", "TODO: Implement CPU affinity for windows");
-    }
 #endif
     args << "eqgame.exe" << "patchme";
     qDebug () << "args:" << args.join(" ");
     eqgame->start(args.join(" "));
+    if(pin_cpu >= 0 && !set_affinity(eqgame->pid(), pin_cpu))
+        QMessageBox::information(this, "CPU Affinity", "Failed setting CPU affinity");
 }
 
 void qEQEcl::eqgame_started()
