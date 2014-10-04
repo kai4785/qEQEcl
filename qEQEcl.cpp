@@ -330,6 +330,7 @@ void qEQEcl::on_add_ini_values_btn_clicked()
 }
 
 void qEQEcl::unpack_p99_files(const QString &p99zip_path) {
+    QMessageBox::information(this, "Unpacking p99 files", "Unpacking");
     QFileInfo p99zip(p99zip_path);
     if(p99zip.exists()) {
         qDebug() << "Found p99 zip archive!";
@@ -396,8 +397,10 @@ void qEQEcl::unpack_p99_files(const QString &p99zip_path) {
         conf->setValue("p99", true);
         conf->setValue("p99_backedup_files", backedup);
         conf->setValue("p99_files", p99_files);
+        QMessageBox::information(this, "Unpacked p99 files", "P99 files installed");
     } else {
         qDebug() << "Failed to find p99 zip file:" << p99zip_path;
+        QMessageBox::information(this, "Failed to download", "Couldn't find p99 zip file.");
     }
 }
 
@@ -452,6 +455,7 @@ void qEQEcl::on_p99_check_clicked(bool checked)
 void qEQEcl::p99_download_done()
 {
     dl->deleteLater();
+    QMessageBox::information(this, "Download complete", "Download complete.");
     unpack_p99_files(dl->file);
 }
 
